@@ -1,0 +1,26 @@
+{
+    "name": "nextjs-blog-smart",
+    "version": "1.0.0",
+    "description": "Lightweight static blog template for free-tier (500MB RAM) deployments",
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start"
+    },
+    "dependencies": {
+        "next": "14.1.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "gray-matter": "^4.0.3",
+        "date-fns": "^3.2.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20",
+        "@types/react": "^18",
+        "@types/react-dom": "^18",
+        "autoprefixer": "^10",
+        "postcss": "^8",
+        "tailwindcss": "^3.4.0",
+        "typescript": "^5"
+    }
+}
