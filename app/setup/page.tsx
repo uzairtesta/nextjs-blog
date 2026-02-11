@@ -1,10 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PostManager from './components/PostManager';
 
 export default function SetupPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+                    <p className="text-lg text-gray-700">Loading...</p>
+                </div>
+            </div>
+        }>
+            <SetupPageContent />
+        </Suspense>
+    );
+}
+
+function SetupPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isOwner, setIsOwner] = useState<boolean | null>(null);
