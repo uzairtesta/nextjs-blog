@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PostManager from './components/PostManager';
 
@@ -25,12 +26,11 @@ function SetupPageContent() {
     const [isOwner, setIsOwner] = useState<boolean | null>(null);
 
     useEffect(() => {
-        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
         const showSetup = process.env.NEXT_PUBLIC_SHOW_SETUP_PAGE === 'true';
 
         // Feature disabled (admin demo or public deployment)
         if (!showSetup) {
-            router.replace(basePath || '/');
+            router.replace('/');
             return;
         }
 
@@ -41,10 +41,10 @@ function SetupPageContent() {
         if (ownerParam && ownerParam === ownerKey) {
             // Valid owner key in URL
             // Set cookie (lasts 24 hours)
-            document.cookie = `__owner_session=true; path=${basePath || '/'}; max-age=86400; samesite=strict${process.env.NODE_ENV === 'production' ? '; secure' : ''}`;
+            document.cookie = `__owner_session=true; path=/; max-age=86400; samesite=strict${process.env.NODE_ENV === 'production' ? '; secure' : ''}`;
 
             // Clean URL (remove ?owner=)
-            router.replace(`${basePath}/setup`);
+            router.replace('/setup');
             setIsOwner(true);
             return;
         }
@@ -57,7 +57,7 @@ function SetupPageContent() {
             setIsOwner(true);
         } else {
             // No valid session → redirect to public site
-            router.replace(basePath || '/');
+            router.replace('/');
         }
     }, [searchParams, router]);
 
@@ -92,12 +92,12 @@ function SetupPageContent() {
                                 <p className="text-sm text-gray-500">Manage your blog content and settings</p>
                             </div>
                         </div>
-                        <a
-                            href={process.env.NEXT_PUBLIC_BASE_PATH || '/'}
+                        <Link
+                            href="/"
                             className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                         >
                             ← Back to Site
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </header>
@@ -120,7 +120,7 @@ function SetupDashboard() {
         setSeedStatus({ type: null, message: '' });
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/seed`, {
+            const res = await fetch('/api/seed', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

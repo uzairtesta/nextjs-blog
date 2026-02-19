@@ -5,33 +5,31 @@ import { useOwnerSession } from '@/lib/hooks/useOwnerSession';
 
 export default function Header() {
     const { isOwner } = useOwnerSession();
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
     return (
         <header className="border-b sticky top-0 bg-white/95 backdrop-blur-sm z-10">
             <div className="max-w-4xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
-                    <Link href={`${basePath}/`} className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+                    <Link href="/" className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
                         Smart Blog
                     </Link>
                     <nav className="flex gap-6 items-center">
                         <Link
-                            href={`${basePath}/`}
+                            href="/"
                             className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                         >
                             Home
                         </Link>
                         <Link
-                            href={`${basePath}/about`}
+                            href="/about"
                             className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                         >
                             About
                         </Link>
 
-                        {/* Setup link - only visible to owner */}
                         {isOwner && (
                             <Link
-                                href={`${basePath}/setup`}
+                                href="/setup"
                                 className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all flex items-center gap-1.5"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

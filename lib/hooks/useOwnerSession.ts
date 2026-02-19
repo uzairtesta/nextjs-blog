@@ -36,7 +36,6 @@ export function useOwnerSession() {
  */
 export function useEnvConfig() {
     return {
-        basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
         showSetup: process.env.NEXT_PUBLIC_SHOW_SETUP_PAGE === 'true',
         ownerKey: process.env.NEXT_PUBLIC_OWNER_KEY || '',
         seedSecret: process.env.NEXT_PUBLIC_SEED_SECRET || ''
