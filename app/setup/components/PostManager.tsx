@@ -28,8 +28,7 @@ export default function PostManager() {
     // Fetch posts
     const fetchPosts = async () => {
         try {
-            const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-            const res = await fetch(`${basePath}/api/posts`);
+            const res = await fetch(`/api/posts`);
             const data = await res.json();
             setPosts(data.posts || []);
         } catch (error) {
@@ -64,8 +63,7 @@ export default function PostManager() {
     const handleEdit = async (post: Post) => {
         try {
             // Fetch full post content
-            const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-            const res = await fetch(`${basePath}/content/blog/${post.filename}`);
+            const res = await fetch(`/content/blog/${post.filename}`);
             const fullContent = await res.text();
 
             // Extract content after frontmatter
@@ -90,8 +88,7 @@ export default function PostManager() {
         if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
 
         try {
-            const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-            const res = await fetch(`${basePath}/api/posts?filename=${filename}`, {
+            const res = await fetch(`/api/posts?filename=${filename}`, {
                 method: 'DELETE'
             });
 
@@ -113,13 +110,12 @@ export default function PostManager() {
         setSaving(true);
 
         try {
-            const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
             const method = editingPost ? 'PUT' : 'POST';
             const payload = editingPost
                 ? { ...formData, filename: editingPost.filename }
                 : formData;
 
-            const res = await fetch(`${basePath}/api/posts`, {
+            const res = await fetch(`/api/posts`, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
