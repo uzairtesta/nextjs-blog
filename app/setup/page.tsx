@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import PostManager from './components/PostManager';
 
 export default function SetupPage() {
@@ -21,16 +21,15 @@ export default function SetupPage() {
 }
 
 function SetupPageContent() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const [isOwner, setIsOwner] = useState<boolean | null>(null);
 
     useEffect(() => {
         const showSetup = process.env.NEXT_PUBLIC_SHOW_SETUP_PAGE === 'true';
 
-        // Feature disabled (admin demo or public deployment)
+        // Feature disabled
         if (!showSetup) {
-            router.replace('/');
+            window.location.href = '/';
             return;
         }
 
@@ -39,12 +38,16 @@ function SetupPageContent() {
         const ownerKey = process.env.NEXT_PUBLIC_OWNER_KEY;
 
         if (ownerParam && ownerParam === ownerKey) {
-            // Valid owner key in URL
-            // Set cookie (lasts 24 hours)
-            document.cookie = `__owner_session=true; path=/; max-age=86400; samesite=strict${process.env.NODE_ENV === 'production' ? '; secure' : ''}`;
+            // Valid owner key — set session cookie (30 days)
+            const maxAge = 30 * 24 * 60 * 60;
+            document.cookie = `__owner_session=true; path=/; max-age=${maxAge}; samesite=strict${process.env.NODE_ENV === 'production' ? '; secure' : ''}`;
 
-            // Clean URL (remove ?owner=)
-            router.replace('/setup');
+            // Clean URL: remove ?owner= from address bar WITHOUT triggering Next.js router
+            // Using replaceState avoids a full re-render / routing loop with basePath
+            if (typeof window !== 'undefined') {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+            }
             setIsOwner(true);
             return;
         }
@@ -57,9 +60,9 @@ function SetupPageContent() {
             setIsOwner(true);
         } else {
             // No valid session → redirect to public site
-            router.replace('/');
+            window.location.href = '/';
         }
-    }, [searchParams, router]);
+    }, [searchParams]);
 
     // Loading state
     if (isOwner === null) {
