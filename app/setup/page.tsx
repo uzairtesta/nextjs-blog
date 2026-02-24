@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import PostManager from './components/PostManager';
 
+// fetch() doesn't respect Next.js basePath - must prefix manually
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function SetupPage() {
     return (
         <Suspense fallback={
@@ -123,7 +126,7 @@ function SetupDashboard() {
         setSeedStatus({ type: null, message: '' });
 
         try {
-            const res = await fetch('/api/seed', {
+            const res = await fetch(`${BASE}/api/seed`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
