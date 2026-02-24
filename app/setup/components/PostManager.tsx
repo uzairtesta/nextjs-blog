@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 
+// fetch() doesn't respect Next.js basePath - must prefix manually
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 interface Post {
     filename: string;
     title: string;
@@ -28,7 +31,7 @@ export default function PostManager() {
     // Fetch posts
     const fetchPosts = async () => {
         try {
-            const res = await fetch(`/api/posts`);
+            const res = await fetch(`${BASE}/api/posts`);
             const data = await res.json();
             setPosts(data.posts || []);
         } catch (error) {
@@ -63,7 +66,7 @@ export default function PostManager() {
     const handleEdit = async (post: Post) => {
         try {
             // Fetch full post content
-            const res = await fetch(`/content/blog/${post.filename}`);
+            const res = await fetch(`${BASE}/content/blog/${post.filename}`);
             const fullContent = await res.text();
 
             // Extract content after frontmatter
@@ -88,7 +91,7 @@ export default function PostManager() {
         if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
 
         try {
-            const res = await fetch(`/api/posts?filename=${filename}`, {
+            const res = await fetch(`${BASE}/api/posts?filename=${filename}`, {
                 method: 'DELETE'
             });
 
@@ -115,7 +118,7 @@ export default function PostManager() {
                 ? { ...formData, filename: editingPost.filename }
                 : formData;
 
-            const res = await fetch(`/api/posts`, {
+            const res = await fetch(`${BASE}/api/posts`, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
