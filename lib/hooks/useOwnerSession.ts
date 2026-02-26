@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from 'react';
 
+const COOKIE_NAME = 'pl_owner';
+
 /**
- * Hook to check if user has owner session
- * Returns true if valid owner cookie exists and SHOW_SETUP_PAGE is enabled
+ * True when the visitor has owner access (HttpOnly pl_owner cookie set by /api/auth).
+ * Setup link and /setup page should only show when this is true (and NEXT_PUBLIC_SHOW_SETUP_PAGE).
  */
 export function useOwnerSession() {
     const [isOwner, setIsOwner] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Check if setup feature is enabled
         const showSetup = process.env.NEXT_PUBLIC_SHOW_SETUP_PAGE === 'true';
 
         if (!showSetup) {
@@ -20,24 +21,13 @@ export function useOwnerSession() {
             return;
         }
 
-        // Check for owner session cookie
+        // Check for HttpOnly owner cookie (set by /api/auth after JWT verification)
         const cookies = document.cookie.split('; ');
-        const hasSession = cookies.some(c => c.startsWith('__owner_session=true'));
+        const hasSession = cookies.some(c => c.startsWith(`${COOKIE_NAME}=`));
 
         setIsOwner(hasSession);
         setIsLoading(false);
     }, []);
 
     return { isOwner, isLoading };
-}
-
-/**
- * Hook to get environment config safely
- */
-export function useEnvConfig() {
-    return {
-        showSetup: process.env.NEXT_PUBLIC_SHOW_SETUP_PAGE === 'true',
-        ownerKey: process.env.NEXT_PUBLIC_OWNER_KEY || '',
-        seedSecret: process.env.NEXT_PUBLIC_SEED_SECRET || ''
-    };
 }
