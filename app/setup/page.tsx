@@ -105,36 +105,7 @@ function SetupPageContent() {
 }
 
 function SetupDashboard() {
-    const [activeTab, setActiveTab] = useState('seed');
-    const [seeding, setSeeding] = useState(false);
-    const [seedStatus, setSeedStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
-
-    const handleSeedData = async () => {
-        setSeeding(true);
-        setSeedStatus({ type: null, message: '' });
-
-        try {
-            const res = await fetch(`${BASE}/api/seed`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-seed-secret': process.env.NEXT_PUBLIC_SEED_SECRET || ''
-                }
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setSeedStatus({ type: 'success', message: data.message || 'Content seeded successfully!' });
-            } else {
-                setSeedStatus({ type: 'error', message: data.error || 'Failed to seed content' });
-            }
-        } catch (error) {
-            setSeedStatus({ type: 'error', message: 'Network error - could not seed content' });
-        } finally {
-            setSeeding(false);
-        }
-    };
+    const [activeTab, setActiveTab] = useState('posts');
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -161,15 +132,6 @@ function SetupDashboard() {
                 <div className="border-b border-gray-200">
                     <nav className="flex gap-6 px-6" aria-label="Tabs">
                         <button
-                            onClick={() => setActiveTab('seed')}
-                            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'seed'
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                        >
-                            🌱 Seed Content
-                        </button>
-                        <button
                             onClick={() => setActiveTab('posts')}
                             className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'posts'
                                 ? 'border-blue-500 text-blue-600'
@@ -178,94 +140,13 @@ function SetupDashboard() {
                         >
                             📝 Manage Posts
                         </button>
-                        <button
-                            onClick={() => setActiveTab('settings')}
-                            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'settings'
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                        >
-                            ⚙️ Settings
-                        </button>
                     </nav>
                 </div>
 
                 {/* Tab Content */}
                 <div className="p-6">
-                    {activeTab === 'seed' && (
-                        <div className="max-w-2xl">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Seed Sample Content</h3>
-                            <p className="text-gray-600 mb-6">
-                                Populate your blog with sample posts to see how it works. You can edit or delete them later.
-                            </p>
-
-                            {seedStatus.type && (
-                                <div className={`mb-6 p-4 rounded-lg ${seedStatus.type === 'success'
-                                    ? 'bg-green-50 border border-green-200 text-green-800'
-                                    : 'bg-red-50 border border-red-200 text-red-800'
-                                    }`}>
-                                    <div className="flex items-center gap-2">
-                                        {seedStatus.type === 'success' ? '✅' : '❌'}
-                                        <span className="font-medium">{seedStatus.message}</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            <button
-                                onClick={handleSeedData}
-                                disabled={seeding}
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
-                            >
-                                {seeding ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                                        Seeding...
-                                    </>
-                                ) : (
-                                    <>
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        Seed Sample Posts
-                                    </>
-                                )}
-                            </button>
-
-                            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
-                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                    </svg>
-                                    What happens when you seed?
-                                </h4>
-                                <ul className="text-sm text-blue-800 space-y-1 ml-7">
-                                    <li>• 3-5 sample blog posts will be created</li>
-                                    <li>• Each post includes title, content, and metadata</li>
-                                    <li>• You can edit or delete any seeded content</li>
-                                    <li>• Safe to run multiple times (won't duplicate)</li>
-                                </ul>
-                            </div>
-                        </div>
-                    )}
-
                     {activeTab === 'posts' && (
                         <PostManager />
-                    )}
-
-                    {activeTab === 'settings' && (
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Blog Settings</h3>
-                            <p className="text-gray-600 mb-6">
-                                Configure your blog settings and preferences.
-                            </p>
-                            <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                                <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <p className="text-gray-500">Settings panel coming in future update</p>
-                            </div>
-                        </div>
                     )}
                 </div>
             </div>
