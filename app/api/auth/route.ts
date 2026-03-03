@@ -51,14 +51,17 @@ export async function GET(req: NextRequest) {
 
     const result = verifyToken(token);
 
+    const forwardedHost = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost';
+    const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
+    const origin = `${forwardedProto}://${forwardedHost}`;
+
     if (!result.valid) {
-        const redirectUrl = `${BASE_PATH}/`;
-        return NextResponse.redirect(new URL(redirectUrl, req.url), 302);
+        return NextResponse.redirect(`${origin}${BASE_PATH}/`, 302);
     }
 
-    const response = NextResponse.redirect(new URL(`${BASE_PATH}/setup`, req.url), 302);
+    const response = NextResponse.redirect(`${origin}${BASE_PATH}/setup`, 302);
     response.cookies.set(COOKIE_NAME, '1', {
-        httpOnly: true,
+        httpOnly: false, // Must be false so SetupGate can read document.cookie
         sameSite: 'lax',
         path: '/',
         maxAge: COOKIE_MAX_AGE,
@@ -71,7 +74,7 @@ export async function GET(req: NextRequest) {
 export async function DELETE(_req: NextRequest) {
     const response = NextResponse.json({ ok: true });
     response.cookies.set(COOKIE_NAME, '', {
-        httpOnly: true,
+        httpOnly: false,
         sameSite: 'lax',
         path: '/',
         maxAge: 0,

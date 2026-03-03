@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { revalidatePath } from 'next/cache';
 
 // Helper to check owner session from cookies
 function isOwnerAuthenticated(request: NextRequest): boolean {
     const cookies = request.cookies;
-    const ownerSession = cookies.get('__owner_session');
+    const ownerSession = cookies.get('pl_owner');
     const showSetup = process.env.NEXT_PUBLIC_SHOW_SETUP_PAGE === 'true';
 
-    return showSetup && ownerSession?.value === 'true';
+    return showSetup && ownerSession?.value === '1';
 }
 
 // GET - List all blog posts
@@ -125,6 +126,10 @@ ${content}`;
 
         fs.writeFileSync(filePath, frontmatter, 'utf-8');
 
+        // Refresh the live blog immediately
+        revalidatePath('/');
+        revalidatePath('/posts');
+
         return NextResponse.json({
             success: true,
             message: 'Post created successfully',
@@ -183,6 +188,10 @@ ${content}`;
 
         fs.writeFileSync(filePath, frontmatter, 'utf-8');
 
+        // Refresh the live blog immediately
+        revalidatePath('/');
+        revalidatePath('/posts');
+
         return NextResponse.json({
             success: true,
             message: 'Post updated successfully'
@@ -228,6 +237,10 @@ export async function DELETE(request: NextRequest) {
         }
 
         fs.unlinkSync(filePath);
+
+        // Refresh the live blog immediately
+        revalidatePath('/');
+        revalidatePath('/posts');
 
         return NextResponse.json({
             success: true,
