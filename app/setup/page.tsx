@@ -78,12 +78,20 @@ function SetupPageContent() {
                                 <p className="text-sm text-gray-500">Manage your blog content and settings</p>
                             </div>
                         </div>
-                        <Link
-                            href="/"
-                            className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                            ← Back to Site
-                        </Link>
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href="/"
+                                className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                ← Back to Site
+                            </Link>
+                            <a
+                                href={`${BASE}/api/logout`}
+                                className="px-4 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
+                            >
+                                Logout
+                            </a>
+                        </div>
                     </div>
                 </div>
             </header>
