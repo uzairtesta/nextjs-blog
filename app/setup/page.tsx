@@ -113,7 +113,7 @@ function SetupDashboard() {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
                 <h2 className="text-2xl font-bold mb-2">👋 Welcome to Your Blog Admin Panel</h2>
                 <p className="text-blue-100 mb-4">
-                    Use this panel to manage your blog content. Seed sample posts to get started or create your own content.
+                    Use this panel to manage your blog content. Create and edit your posts from here.
                 </p>
                 <div className="flex gap-4">
                     <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
@@ -164,6 +164,6 @@ function SetupDashboard() {
                     Only you can access this setup page using the admin link from your dashboard.
                 </p>
             </div>
-        </div >
+        </div>
     );
 }
