@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import PostManager from './components/PostManager';
 
 // fetch() doesn't respect Next.js basePath - must prefix manually
@@ -24,7 +23,6 @@ export default function SetupPage() {
 }
 
 function SetupPageContent() {
-    const searchParams = useSearchParams();
     const [isOwner, setIsOwner] = useState<boolean | null>(null);
 
     useEffect(() => {
@@ -32,40 +30,22 @@ function SetupPageContent() {
 
         // Feature disabled
         if (!showSetup) {
-            window.location.href = '/';
+            window.location.href = `${BASE}/`;
             return;
         }
 
-        // Step 1: Check owner query parameter
-        const ownerParam = searchParams.get('owner');
-        const ownerKey = process.env.NEXT_PUBLIC_OWNER_KEY;
-
-        if (ownerParam && ownerParam === ownerKey) {
-            // Valid owner key — set session cookie (30 days)
-            const maxAge = 30 * 24 * 60 * 60;
-            document.cookie = `__owner_session=true; path=/; max-age=${maxAge}; samesite=strict${process.env.NODE_ENV === 'production' ? '; secure' : ''}`;
-
-            // Clean URL: remove ?owner= from address bar WITHOUT triggering Next.js router
-            // Using replaceState avoids a full re-render / routing loop with basePath
-            if (typeof window !== 'undefined') {
-                const cleanUrl = window.location.pathname;
-                window.history.replaceState({}, '', cleanUrl);
-            }
-            setIsOwner(true);
-            return;
-        }
-
-        // Step 2: Check existing session cookie
+        // Check owner session via pl_owner cookie (set by JWT auth route)
         const cookies = document.cookie.split('; ');
-        const hasSession = cookies.some(c => c.startsWith('__owner_session=true'));
+        const hasSession = cookies.some(c => c.startsWith('pl_owner=1'));
 
         if (hasSession) {
             setIsOwner(true);
         } else {
             // No valid session → redirect to public site
-            window.location.href = '/';
+            window.location.href = `${window.location.origin}${BASE}/`;
         }
-    }, [searchParams]);
+    }, []);
+
 
     // Loading state
     if (isOwner === null) {
@@ -270,35 +250,12 @@ function SetupDashboard() {
                             <p className="text-gray-600 mb-6">
                                 Configure your blog settings and preferences.
                             </p>
-
-                            <div className="space-y-6">
-                                <div className="border border-gray-200 rounded-lg p-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Blog Title
-                                    </label>
-                                    <input
-                                        type="text"
-                                        defaultValue="My Awesome Blog"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div className="border border-gray-200 rounded-lg p-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Description
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        defaultValue="A blog about web development, design, and technology."
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div className="flex justify-end">
-                                    <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all">
-                                        Save Settings
-                                    </button>
-                                </div>
+                            <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                                <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <p className="text-gray-500">Settings panel coming in future update</p>
                             </div>
                         </div>
                     )}
