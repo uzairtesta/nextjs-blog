@@ -10,6 +10,7 @@ export default function Header() {
     const { isOwner } = useOwnerSession();
     const [isDark, setIsDark] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [blogName, setBlogName] = useState('Smart Blog');
 
     useEffect(() => {
         const stored = localStorage.getItem(THEME_KEY);
@@ -17,6 +18,17 @@ export default function Header() {
         setIsDark(dark);
         document.documentElement.classList.toggle('dark', dark);
         setMounted(true);
+
+        // Fetch site settings
+        const BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+        fetch(`${BASE}/api/settings`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.settings?.blogName) {
+                    setBlogName(data.settings.blogName);
+                }
+            })
+            .catch(() => { });
     }, []);
 
     const toggleTheme = () => {
@@ -38,7 +50,7 @@ export default function Header() {
                         <span className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
                             SB
                         </span>
-                        Smart Blog
+                        {blogName}
                     </Link>
 
                     {/* Nav */}

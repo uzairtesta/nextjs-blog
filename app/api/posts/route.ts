@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { title, content, excerpt, tags, date } = body;
+        const { title, content, excerpt, tags, date, image } = body;
 
         if (!title || !content) {
             return NextResponse.json(
@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
                 content,
                 excerpt: excerpt || '',
                 tags: tags || '',
+                image: image || null,
                 published: true,
                 createdAt: date ? new Date(date) : new Date(),
             }
@@ -114,7 +115,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, title, content, excerpt, tags, date } = body;
+        const { id, title, content, excerpt, tags, date, image } = body;
 
         if (!id || !title || !content) {
             return NextResponse.json(
@@ -130,6 +131,7 @@ export async function PUT(request: NextRequest) {
                 content,
                 excerpt: excerpt || '',
                 tags: tags || '',
+                image: image !== undefined ? image : undefined,
                 createdAt: date ? new Date(date) : undefined,
             }
         });

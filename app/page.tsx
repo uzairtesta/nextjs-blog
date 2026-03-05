@@ -45,6 +45,8 @@ export default async function Home() {
                 slug: p.slug,
                 title: p.title,
                 excerpt: p.excerpt,
+                tags: p.tags || '',
+                image: (p as any).image || null,
                 date: p.createdAt.toISOString(),
                 readTime: `${Math.max(1, Math.ceil(p.content.length / 1000))} min read`,
             }));
@@ -53,6 +55,8 @@ export default async function Home() {
                 slug: p.slug,
                 title: p.title,
                 excerpt: p.excerpt,
+                tags: p.tags || '',
+                image: (p as any).image || null,
                 date: p.createdAt.toISOString(),
                 readTime: `${Math.max(1, Math.ceil(p.content.length / 1000))} min read`,
             }));

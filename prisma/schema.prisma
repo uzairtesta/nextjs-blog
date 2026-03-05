@@ -15,7 +15,17 @@ model BlogPost {
   content   String
   excerpt   String   @default("")
   tags      String   @default("")
+  image     String?
   published Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id          String @id @default("default")
+  blogName    String @default("Smart Blog")
+  description String @default("A lightweight, database-powered blog")
+  authorName  String @default("")
+  authorBio   String @default("")
+  footerText  String @default("Built with Next.js | Optimized for 500MB Containers")
 }

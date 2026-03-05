@@ -12,6 +12,7 @@ interface Post {
     content: string;
     excerpt: string;
     tags: string;
+    image: string | null;
     published: boolean;
     createdAt: string;
 }
@@ -26,6 +27,7 @@ export default function PostManager() {
         content: '',
         excerpt: '',
         tags: '',
+        image: '',
         date: new Date().toISOString().split('T')[0]
     });
     const [saving, setSaving] = useState(false);
@@ -49,6 +51,64 @@ export default function PostManager() {
         fetchPosts();
     }, []);
 
+    // Client-side image compression via canvas (limit to 250KB)
+    const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
+    const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            showMessage('error', 'Image must be less than 5MB');
+            return;
+        }
+
+        try {
+            setSaving(true);
+            const base64 = await compressImage(file);
+
+            const sizeInBytes = Math.round((base64.length * 3) / 4);
+            if (sizeInBytes > 250 * 1024) {
+                showMessage('error', 'Image is too large and cannot be compressed enough. Try a simpler image.');
+                return;
+            }
+
+            setFormData(prev => ({ ...prev, image: base64 }));
+        } catch (error) {
+            showMessage('error', 'Failed to compress image');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const showMessage = (type: 'success' | 'error', text: string) => {
         setMessage({ type, text });
         setTimeout(() => setMessage(null), 5000);
@@ -61,6 +121,7 @@ export default function PostManager() {
             content: '',
             excerpt: '',
             tags: '',
+            image: '',
             date: new Date().toISOString().split('T')[0]
         });
         setShowModal(true);
@@ -73,6 +134,7 @@ export default function PostManager() {
             content: post.content,
             excerpt: post.excerpt,
             tags: post.tags,
+            image: post.image || '',
             date: new Date(post.createdAt).toISOString().split('T')[0]
         });
         setShowModal(true);
@@ -267,6 +329,36 @@ export default function PostManager() {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                     required
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Cover Image (Optional)</label>
+                                {formData.image ? (
+                                    <div className="relative w-full max-w-sm rounded-lg overflow-hidden border border-gray-200">
+                                        <img src={formData.image} alt="Cover Preview" className="w-full h-auto" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, image: '' })}
+                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                                            title="Remove image"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageFile}
+                                            disabled={saving}
+                                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-400">Max size: 5MB (auto-compressed)</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div>

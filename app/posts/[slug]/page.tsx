@@ -72,6 +72,11 @@ export default async function PostPage({ params }: Props) {
                         ))}
                     </div>
                 )}
+                {post.image && (
+                    <div className="mt-8 rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+                        <img src={post.image} alt={post.title} className="w-full h-auto max-h-[500px] object-cover" />
+                    </div>
+                )}
                 {post.excerpt && (
                     <p className="mt-6 text-lg text-gray-600 dark:text-gray-300 leading-relaxed border-l-4 border-blue-500 pl-4">
                         {post.excerpt}
