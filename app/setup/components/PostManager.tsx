@@ -6,11 +6,14 @@ import { useState, useEffect } from 'react';
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 interface Post {
-    filename: string;
+    id: number;
+    slug: string;
     title: string;
-    date: string;
+    content: string;
     excerpt: string;
     tags: string;
+    published: boolean;
+    createdAt: string;
 }
 
 export default function PostManager() {
@@ -63,35 +66,23 @@ export default function PostManager() {
         setShowModal(true);
     };
 
-    const handleEdit = async (post: Post) => {
-        try {
-            // Fetch full post content
-            const res = await fetch(`${BASE}/content/blog/${post.filename}`);
-            const fullContent = await res.text();
-
-            // Extract content after frontmatter
-            const contentMatch = fullContent.match(/---[\s\S]*?---\s*([\s\S]*)/);
-            const content = contentMatch ? contentMatch[1].trim() : '';
-
-            setEditingPost(post);
-            setFormData({
-                title: post.title,
-                content,
-                excerpt: post.excerpt,
-                tags: post.tags,
-                date: post.date
-            });
-            setShowModal(true);
-        } catch (error) {
-            showMessage('error', 'Failed to load post content');
-        }
+    const handleEdit = (post: Post) => {
+        setEditingPost(post);
+        setFormData({
+            title: post.title,
+            content: post.content,
+            excerpt: post.excerpt,
+            tags: post.tags,
+            date: new Date(post.createdAt).toISOString().split('T')[0]
+        });
+        setShowModal(true);
     };
 
-    const handleDelete = async (filename: string, title: string) => {
-        if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
+    const handleDelete = async (post: Post) => {
+        if (!confirm(`Are you sure you want to delete "${post.title}"?`)) return;
 
         try {
-            const res = await fetch(`${BASE}/api/posts?filename=${filename}`, {
+            const res = await fetch(`${BASE}/api/posts?id=${post.id}`, {
                 method: 'DELETE'
             });
 
@@ -115,7 +106,7 @@ export default function PostManager() {
         try {
             const method = editingPost ? 'PUT' : 'POST';
             const payload = editingPost
-                ? { ...formData, filename: editingPost.filename }
+                ? { ...formData, id: editingPost.id }
                 : formData;
 
             const res = await fetch(`${BASE}/api/posts`, {
@@ -196,12 +187,17 @@ export default function PostManager() {
                 <div className="grid gap-4">
                     {posts.map((post) => (
                         <div
-                            key={post.filename}
+                            key={post.id}
                             className="bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all"
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                    <h4 className="text-lg font-semibold text-gray-900 mb-2">{post.title}</h4>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h4 className="text-lg font-semibold text-gray-900">{post.title}</h4>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${post.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                            {post.published ? '● Published' : '○ Draft'}
+                                        </span>
+                                    </div>
                                     {post.excerpt && (
                                         <p className="text-gray-600 text-sm mb-3">{post.excerpt}</p>
                                     )}
@@ -210,7 +206,7 @@ export default function PostManager() {
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
-                                            {post.date || 'No date'}
+                                            {new Date(post.createdAt).toLocaleDateString()}
                                         </span>
                                         {post.tags && (
                                             <span className="flex items-center gap-1">
@@ -220,6 +216,7 @@ export default function PostManager() {
                                                 {post.tags}
                                             </span>
                                         )}
+                                        <span className="text-xs text-gray-400">/{post.slug}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 ml-4">
@@ -230,7 +227,7 @@ export default function PostManager() {
                                         Edit
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(post.filename, post.title)}
+                                        onClick={() => handleDelete(post)}
                                         className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
                                     >
                                         Delete
@@ -267,17 +264,17 @@ export default function PostManager() {
                                     type="text"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Content * (Markdown)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Content * (Markdown supported)</label>
                                 <textarea
                                     value={formData.content}
                                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm text-gray-900"
                                     rows={12}
                                     required
                                 />
@@ -289,7 +286,7 @@ export default function PostManager() {
                                     type="text"
                                     value={formData.excerpt}
                                     onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                     placeholder="Brief summary..."
                                 />
                             </div>
@@ -301,7 +298,7 @@ export default function PostManager() {
                                         type="text"
                                         value={formData.tags}
                                         onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                         placeholder="React, Next.js, Tutorial"
                                     />
                                 </div>
@@ -311,7 +308,7 @@ export default function PostManager() {
                                         type="date"
                                         value={formData.date}
                                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                     />
                                 </div>
                             </div>

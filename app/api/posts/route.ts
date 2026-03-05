@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 // Helper to check owner session from cookies
@@ -12,57 +11,30 @@ function isOwnerAuthenticated(request: NextRequest): boolean {
     return showSetup && ownerSession?.value === '1';
 }
 
+// Helper to generate slug from title
+function generateSlug(title: string): string {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+}
+
 // GET - List all blog posts
 export async function GET(request: NextRequest) {
     try {
-        const contentDir = path.join(process.cwd(), 'content', 'blog');
-
-        if (!fs.existsSync(contentDir)) {
-            return NextResponse.json({ posts: [] });
-        }
-
-        const files = fs.readdirSync(contentDir).filter(file => file.endsWith('.md'));
-
-        const posts = files.map(filename => {
-            const filePath = path.join(contentDir, filename);
-            const content = fs.readFileSync(filePath, 'utf-8');
-
-            // Parse frontmatter
-            const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---/;
-            const match = content.match(frontmatterRegex);
-
-            let frontmatter: any = {};
-            if (match) {
-                const frontmatterText = match[1];
-                frontmatterText.split('\n').forEach(line => {
-                    const [key, ...valueParts] = line.split(':');
-                    if (key && valueParts.length) {
-                        const value = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
-                        frontmatter[key.trim()] = value;
-                    }
-                });
-            }
-
-            return {
-                filename,
-                title: frontmatter.title || filename.replace('.md', ''),
-                date: frontmatter.date || '',
-                excerpt: frontmatter.excerpt || '',
-                tags: frontmatter.tags || '',
-            };
-        });
-
-        // Sort by date descending
-        posts.sort((a, b) => {
-            if (!a.date && !b.date) return 0;
-            if (!a.date) return 1;
-            if (!b.date) return -1;
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
+        const posts = await prisma.blogPost.findMany({
+            orderBy: { createdAt: 'desc' },
         });
 
         return NextResponse.json({ posts });
     } catch (error: any) {
         console.error('Error fetching posts:', error);
+
+        // If table doesn't exist yet, return empty + seed default posts
+        if (error.message?.includes('does not exist') || error.code === 'P2021') {
+            return NextResponse.json({ posts: [] });
+        }
+
         return NextResponse.json(
             { error: 'Failed to fetch posts', details: error.message },
             { status: 500 }
@@ -73,7 +45,6 @@ export async function GET(request: NextRequest) {
 // POST - Create new post
 export async function POST(request: NextRequest) {
     try {
-        // Check owner authentication
         if (!isOwnerAuthenticated(request)) {
             return NextResponse.json(
                 { error: 'Unauthorized - owner access only' },
@@ -91,49 +62,37 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const contentDir = path.join(process.cwd(), 'content', 'blog');
+        const slug = generateSlug(title);
 
-        if (!fs.existsSync(contentDir)) {
-            fs.mkdirSync(contentDir, { recursive: true });
-        }
-
-        // Create filename from title
-        const filename = title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '') + '.md';
-
-        const filePath = path.join(contentDir, filename);
-
-        // Check if file already exists
-        if (fs.existsSync(filePath)) {
+        // Check for duplicate slug
+        const existing = await prisma.blogPost.findUnique({ where: { slug } });
+        if (existing) {
             return NextResponse.json(
                 { error: 'A post with this title already exists' },
                 { status: 409 }
             );
         }
 
-        // Create frontmatter
-        const postDate = date || new Date().toISOString().split('T')[0];
-        const frontmatter = `---
-title: "${title}"
-date: "${postDate}"
-excerpt: "${excerpt || ''}"
-tags: "${tags || ''}"
----
+        const post = await prisma.blogPost.create({
+            data: {
+                slug,
+                title,
+                content,
+                excerpt: excerpt || '',
+                tags: tags || '',
+                published: true,
+                createdAt: date ? new Date(date) : new Date(),
+            }
+        });
 
-${content}`;
-
-        fs.writeFileSync(filePath, frontmatter, 'utf-8');
-
-        // Refresh the live blog immediately
         revalidatePath('/');
         revalidatePath('/posts');
+        revalidatePath(`/posts/${slug}`);
 
         return NextResponse.json({
             success: true,
             message: 'Post created successfully',
-            filename
+            post
         });
     } catch (error: any) {
         console.error('Error creating post:', error);
@@ -147,7 +106,6 @@ ${content}`;
 // PUT - Update existing post
 export async function PUT(request: NextRequest) {
     try {
-        // Check owner authentication
         if (!isOwnerAuthenticated(request)) {
             return NextResponse.json(
                 { error: 'Unauthorized - owner access only' },
@@ -156,45 +114,34 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { filename, title, content, excerpt, tags, date } = body;
+        const { id, title, content, excerpt, tags, date } = body;
 
-        if (!filename || !title || !content) {
+        if (!id || !title || !content) {
             return NextResponse.json(
-                { error: 'Filename, title, and content are required' },
+                { error: 'ID, title, and content are required' },
                 { status: 400 }
             );
         }
 
-        const contentDir = path.join(process.cwd(), 'content', 'blog');
-        const filePath = path.join(contentDir, filename);
+        const post = await prisma.blogPost.update({
+            where: { id: parseInt(id) },
+            data: {
+                title,
+                content,
+                excerpt: excerpt || '',
+                tags: tags || '',
+                createdAt: date ? new Date(date) : undefined,
+            }
+        });
 
-        if (!fs.existsSync(filePath)) {
-            return NextResponse.json(
-                { error: 'Post not found' },
-                { status: 404 }
-            );
-        }
-
-        // Update frontmatter
-        const postDate = date || new Date().toISOString().split('T')[0];
-        const frontmatter = `---
-title: "${title}"
-date: "${postDate}"
-excerpt: "${excerpt || ''}"
-tags: "${tags || ''}"
----
-
-${content}`;
-
-        fs.writeFileSync(filePath, frontmatter, 'utf-8');
-
-        // Refresh the live blog immediately
         revalidatePath('/');
         revalidatePath('/posts');
+        revalidatePath(`/posts/${post.slug}`);
 
         return NextResponse.json({
             success: true,
-            message: 'Post updated successfully'
+            message: 'Post updated successfully',
+            post
         });
     } catch (error: any) {
         console.error('Error updating post:', error);
@@ -208,7 +155,6 @@ ${content}`;
 // DELETE - Delete post
 export async function DELETE(request: NextRequest) {
     try {
-        // Check owner authentication
         if (!isOwnerAuthenticated(request)) {
             return NextResponse.json(
                 { error: 'Unauthorized - owner access only' },
@@ -217,28 +163,19 @@ export async function DELETE(request: NextRequest) {
         }
 
         const { searchParams } = new URL(request.url);
-        const filename = searchParams.get('filename');
+        const id = searchParams.get('id');
 
-        if (!filename) {
+        if (!id) {
             return NextResponse.json(
-                { error: 'Filename is required' },
+                { error: 'Post ID is required' },
                 { status: 400 }
             );
         }
 
-        const contentDir = path.join(process.cwd(), 'content', 'blog');
-        const filePath = path.join(contentDir, filename);
+        await prisma.blogPost.delete({
+            where: { id: parseInt(id) }
+        });
 
-        if (!fs.existsSync(filePath)) {
-            return NextResponse.json(
-                { error: 'Post not found' },
-                { status: 404 }
-            );
-        }
-
-        fs.unlinkSync(filePath);
-
-        // Refresh the live blog immediately
         revalidatePath('/');
         revalidatePath('/posts');
 
