@@ -130,30 +130,30 @@ function SetupDashboard() {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 flex overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 flex overflow-x-auto scrollbar-hide">
                 <button
                     onClick={() => setActiveTab('posts')}
-                    className={`flex-1 py-4 font-medium text-sm transition-colors ${activeTab === 'posts'
+                    className={`flex-shrink-0 flex-1 min-w-[110px] py-4 font-medium text-sm transition-colors ${activeTab === 'posts'
                         ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
                         : 'text-gray-600 hover:bg-gray-50 border-b-2 border-transparent hover:border-gray-200'
                         }`}
                 >
                     📝 Manage Posts
                 </button>
-                <div className="w-px bg-gray-200"></div>
+                <div className="w-px bg-gray-200 flex-shrink-0"></div>
                 <button
                     onClick={() => setActiveTab('settings')}
-                    className={`flex-1 py-4 font-medium text-sm transition-colors ${activeTab === 'settings'
+                    className={`flex-shrink-0 flex-1 min-w-[110px] py-4 font-medium text-sm transition-colors ${activeTab === 'settings'
                         ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
                         : 'text-gray-600 hover:bg-gray-50 border-b-2 border-transparent hover:border-gray-200'
                         }`}
                 >
                     ⚙️ Site Settings
                 </button>
-                <div className="w-px bg-gray-200"></div>
+                <div className="w-px bg-gray-200 flex-shrink-0"></div>
                 <button
                     onClick={() => setActiveTab('data')}
-                    className={`flex-1 py-4 font-medium text-sm transition-colors ${activeTab === 'data'
+                    className={`flex-shrink-0 flex-1 min-w-[100px] py-4 font-medium text-sm transition-colors ${activeTab === 'data'
                         ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
                         : 'text-gray-600 hover:bg-gray-50 border-b-2 border-transparent hover:border-gray-200'
                         }`}
