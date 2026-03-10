@@ -23,7 +23,7 @@ export function useOwnerSession() {
 
         // Check for HttpOnly owner cookie (set by /api/auth after JWT verification)
         const cookies = document.cookie.split('; ');
-        const hasSession = cookies.some(c => c.startsWith(`${COOKIE_NAME}=`));
+        const hasSession = cookies.some(c => c === `${COOKIE_NAME}=1`);
 
         setIsOwner(hasSession);
         setIsLoading(false);

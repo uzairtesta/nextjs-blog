@@ -7,13 +7,20 @@ export async function GET() {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://example.com${basePath}`;
 
     let posts: any[] = [];
+    let siteSettings: any = null;
     try {
-        posts = await prisma.blogPost.findMany({
-            where: { published: true },
-            orderBy: { createdAt: 'desc' },
-            take: 50,
-        });
+        [posts, siteSettings] = await Promise.all([
+            prisma.blogPost.findMany({
+                where: { published: true },
+                orderBy: { createdAt: 'desc' },
+                take: 50,
+            }),
+            (prisma as any).siteSettings.findUnique({ where: { id: 'default' } }),
+        ]);
     } catch { }
+
+    const blogTitle = siteSettings?.blogName || 'Smart Blog';
+    const blogDescription = siteSettings?.description || 'A lightweight, database-powered blog';
 
     const items = posts.map(post => `
     <item>
@@ -27,9 +34,9 @@ export async function GET() {
     const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Smart Blog</title>
+    <title>${blogTitle}</title>
     <link>${siteUrl}</link>
-    <description>A lightweight, database-powered blog</description>
+    <description>${blogDescription}</description>
     <language>en</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${siteUrl}/feed.xml" rel="self" type="application/rss+xml"/>

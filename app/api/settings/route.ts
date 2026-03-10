@@ -12,7 +12,7 @@ export async function GET() {
         }
         return NextResponse.json({ settings });
     } catch (error: any) {
-        return NextResponse.json({ settings: null, error: error.message }, { status: 200 });
+        return NextResponse.json({ settings: null, error: error.message }, { status: 500 });
     }
 }
 

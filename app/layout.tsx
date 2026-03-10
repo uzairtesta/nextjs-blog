@@ -18,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
     } catch { }
 
     return {
-        title: 'Smart Blog',
-        description: 'A lightweight static blog built with Next.js',
+        title: 'Smart Blog — Lightweight & Fast',
+        description: 'A lightweight, static blog template built with Next.js. Optimized for minimal resource usage and free-tier deployments.',
     };
 }
 

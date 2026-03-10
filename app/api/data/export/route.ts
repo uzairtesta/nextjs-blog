@@ -11,9 +11,10 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const blogPosts = await prisma.blogPost.findMany({
-            orderBy: { createdAt: 'desc' },
-        });
+        const [blogPosts, siteSettings] = await Promise.all([
+            prisma.blogPost.findMany({ orderBy: { createdAt: 'desc' } }),
+            (prisma as any).siteSettings.findUnique({ where: { id: 'default' } }),
+        ]);
 
         const exportData = {
             _meta: {
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
                 version: '1.0',
             },
             blogPosts,
+            siteSettings: siteSettings || null,
         };
 
         const json = JSON.stringify(exportData, null, 2);

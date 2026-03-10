@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
                                 title: p.title,
                                 content: p.content,
                                 excerpt: p.excerpt || '',
+                                image: p.image || '',
                                 tags: p.tags || '',
                                 published: p.published ?? true,
                                 createdAt: new Date(p.createdAt),

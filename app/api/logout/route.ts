@@ -7,6 +7,6 @@ export async function GET(request: NextRequest) {
     const origin = `${proto}://${host}`;
 
     const response = NextResponse.redirect(new URL(`${base}/`, origin));
-    response.cookies.set('pl_owner', '', { maxAge: 0, path: base || '/' });
+    response.cookies.set('pl_owner', '', { maxAge: 0, path: '/' });
     return response;
 }
