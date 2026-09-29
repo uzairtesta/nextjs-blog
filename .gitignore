@@ -4,4 +4,4 @@ out
 *.log
 .env*.local
 .DS_Store
-config.bat
+prisma/data/
