@@ -1,16 +1,20 @@
-# Smart Blog - Lightweight Static Template
+# Smart Blog - Lightweight Blog Template
 
-A lightweight, static blog template built with Next.js 14, optimized for free-tier deployments with minimal resource usage (50-150MB RAM).
+A lightweight blog template built with Next.js 14 and Prisma/SQLite, optimized for free-tier deployments with minimal resource usage.
 
 ## Features
 
-- ✅ **Static Export** - No server runtime, just static files
-- ✅ **Minimal RAM** - 50-150MB footprint (500MB container compatible)
-- ✅ **No Database** - Markdown-based content
+- ✅ **Prisma + SQLite** - Database-powered content management
+- ✅ **CRUD API Routes** - Full blog post management via REST API
+- ✅ **Admin Setup Panel** - Create, edit, and delete posts from the browser
+- ✅ **JWT Authentication** - Secure owner session management
+- ✅ **Import/Export** - Data portability with JSON import and export
+- ✅ **Site Settings** - Configurable blog name, description, author info
+- ✅ **RSS Feed** - Auto-generated feed.xml
+- ✅ **Image Support** - Inline image handling for blog posts
 - ✅ **TypeScript** - Full type safety
 - ✅ **Tailwind CSS** - Modern styling
 - ✅ **SEO Friendly** - Pre-rendered pages
-- ✅ **Fast** - Instant page loads
 
 ## Quick Start
 
@@ -24,48 +28,49 @@ npm run dev
 # Build for production
 npm run build
 
-# Serve static export
+# Start production server
 npm start
 ```
 
-## Adding Content
+## Project Structure
 
-Create markdown files in the `content/` directory:
-
-```markdown
----
-title: "My Post Title"
-date: "2024-02-09"
-excerpt: "Short description"
-readTime: "5 min read"
----
-
-Your markdown content here...
+```
+app/
+├── api/
+│   ├── auth/route.ts       # JWT authentication
+│   ├── posts/route.ts      # Blog post CRUD
+│   ├── settings/route.ts   # Site settings API
+│   ├── data/
+│   │   ├── export/route.ts # Data export
+│   │   ├── import/route.ts # Data import
+│   │   └── clear/route.ts  # Data cleanup
+│   └── logout/route.ts     # Session logout
+├── setup/                  # Admin panel
+├── posts/[slug]/           # Dynamic blog post pages
+├── about/                  # About page
+└── feed.xml/               # RSS feed
+prisma/
+├── schema.prisma           # Database schema (SQLite)
+lib/
+├── db.ts                   # Prisma client singleton
+├── hooks/
+│   └── useOwnerSession.ts  # Auth hook
 ```
 
 ## Deployment
 
-This template uses `output: 'export'` for static generation. After building:
+After building, the application runs as a Next.js server:
 
-1. Static files are in the `out/` directory
-2. Deploy to any static host (Vercel, Netlify, etc.)
-3. Or use this platform's container deployment
+1. Set `DATABASE_URL` environment variable (defaults to `file:./data/blog.db`)
+2. Run `npm run build` (handles Prisma generation and DB setup automatically)
+3. Run `npm start` to serve
+4. Deploy to any Node.js host (Vercel, container, VPS, etc.)
 
 ## Resource Requirements
 
-- **Build Time**: ~200MB RAM (platform server handles this)
-- **Runtime**: 50-150MB RAM (perfect for free tier!)
-- **Storage**: <20MB
-
-## Architecture
-
-Unlike database-heavy templates (nextjs-commerce, nextjs-portfolio), this template:
-- No Prisma / SQLite
-- No API routes
-- No `app.prepare()` overhead
-- Pure static file serving
-
-Perfect for free-tier users!
+- **Build Time**: ~200MB RAM
+- **Runtime**: ~150MB RAM
+- **Storage**: <50MB (excluding uploaded images)
 
 ## License
 
